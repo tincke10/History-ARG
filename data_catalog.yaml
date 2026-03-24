@@ -1,0 +1,150 @@
+# Catálogo de datos - History-ARG
+# Última verificación: 2026-03-23
+
+sources:
+  # ============================================================
+  # MVP (Piloto) - Todo en español
+  # ============================================================
+
+  side_declassification:
+    name: "Archivos Desclasificados de la SIDE (1973-1983)"
+    priority: 0  # MVP
+    description: >
+      26 documentos oficiales de la Secretaría de Inteligencia del Estado (SIDE)
+      desclasificados en marzo 2026. Incluye resoluciones, memorandos, circulares,
+      directivas y manuales del período 1973-1983.
+    language: es
+    total_documents: 26
+    total_pages: 987
+    format: PDF (escaneado) + OCR JSON (comunitario)
+    license: "Dominio público (documentos oficiales del Estado argentino)"
+    date_published: "2026-03-19"
+
+    # Fuente oficial (PDF único con los 26 documentos)
+    official_pdf:
+      url: "https://www.argentina.gob.ar/sites/default/files/inteligencia/documentos.pdf"
+      status: accessible
+      size: ">10MB"
+
+    # Guía de desclasificación
+    guide_pdf:
+      url: "https://www.argentina.gob.ar/sites/default/files/inteligencia/guia_sobre_la_desclasificacion_de_documentos_historicos.pdf"
+      status: accessible
+
+    # Portal oficial
+    portal:
+      url: "https://www.argentina.gob.ar/inteligencia/archivos"
+      status: accessible
+
+    # OCR comunitario (987 archivos JSON, uno por página)
+    ocr_community:
+      repo: "https://github.com/Xyborg/side.com.ar"
+      ocr_path: "data/ocr/"
+      ocr_files: 987  # page-0001.json a page-0987.json
+      ocr_format: |
+        {"global_page": int, "doc_id": "doc-XX", "text": "...", "confidence": "high|medium|low"}
+      metadata_url: "https://side.com.ar/data/documents.json?v=4"
+      folders_url: "https://side.com.ar/data/carpetas.json?v=4"
+      website: "https://side.com.ar/"
+      author: "Martin Aberastegue"
+      note: "Sitio no oficial, OCR de calidad alta"
+      status: accessible
+
+    # Estructura de los 26 documentos (3 carpetas temáticas)
+    folders:
+      - name: "Orgánicas, Misiones y Funciones de la SIDE"
+        documents: 11
+      - name: "Normativa Interna - Misión de la SIDE y Delegaciones del Interior"
+        documents: 4
+      - name: "Comisión Asesora de Antecedentes (CAA)"
+        documents: 11
+
+    ocr_needed: false  # Ya disponible via repo comunitario
+    processing_notes: >
+      Usar los JSONs de OCR del repo Xyborg/side.com.ar en lugar de hacer OCR propio.
+      Cada JSON tiene: global_page, doc_id, text, confidence.
+      El documents.json tiene metadata rica: título, fecha, clasificación, tags, tópicos,
+      período histórico, cantidad de páginas.
+
+  ruvte:
+    name: "Registro Unificado de Víctimas del Terrorismo de Estado (RUVTE)"
+    priority: 0  # MVP
+    description: >
+      Registro oficial de víctimas del accionar represivo ilegal del Estado argentino
+      entre 1966 y 1983. Incluye desapariciones forzadas, asesinatos y casos en
+      investigación.
+    language: es
+    format: CSV (UTF-8, comma-delimited)
+    license: "Creative Commons Attribution 4.0"
+    date_published: "2016-09-30"
+    date_updated: "2024-06-05"
+    data_current_through: "2020-12-30"
+    responsible_entity: "Ministerio de Justicia - Secretaría de Derechos Humanos"
+
+    datasets:
+      - name: "Víctimas con denuncia formal"
+        filename: "victimas-accionar-represivo-ilegal.csv"
+        url: "https://datos.jus.gob.ar/dataset/d43fa140-f43f-4cc2-8491-b1d8bb899de4/resource/c6b674bc-e178-41f3-81f5-0f10038e1688/download/victimas-accionar-represivo-ilegal.csv"
+        rows: 8632
+        status: accessible
+        fields:
+          - anio_denuncia          # int - Año de la denuncia
+          - tipificacion_ruvte     # string - "DESAPARICION FORZADA", "ASESINATO", etc.
+          - id_unico_ruvte         # string - "ID XXXX"
+          - apellido_paterno_nombres  # string
+          - apellido_materno       # string
+          - apellido_casada        # string
+          - edad_al_momento_del_hecho  # string - "26 años"
+          - documentos             # string - Número de documento
+          - anio_nacimiento        # string
+          - provincia_pais_nacimiento  # string - Provincia o país
+          - nacionalidad           # string
+          - embarazo               # string
+          - fecha_lugar_detencion_secuestro  # string - "DD/MM/YYYY LUGAR"
+          - fecha_lugar_asesinato_o_hallazgo_de_restos  # string
+          - fotografia             # string - "Sí" o vacío
+
+      - name: "Víctimas sin denuncia formal (casos CONADEP en investigación)"
+        filename: "victimas-accionar-represivo-ilegal-sin-denuncia-formal.csv"
+        url: "https://datos.jus.gob.ar/dataset/d43fa140-f43f-4cc2-8491-b1d8bb899de4/resource/4c66093d-1293-4c44-a4c4-4cc1d914127e/download/victimas-accionar-represivo-ilegal-sin-denuncia-formal.csv"
+        rows: 783
+        status: accessible
+        fields_extra:
+          - fuente_original        # string - Fuente del caso (adicional a los campos anteriores)
+
+    total_records: 9415
+    ocr_needed: false  # Datos estructurados
+    processing_notes: >
+      CSV con BOM (UTF-8 BOM). Cada registro = 1 documento para embeddings (sin chunking).
+      Convertir a texto natural incluyendo todos los campos relevantes.
+      Nota: el campo provincia_pais_nacimiento combina provincia y país en un solo campo.
+
+  # ============================================================
+  # Futuro (V2+) - Referencia
+  # ============================================================
+
+  nunca_mas:
+    name: "Informe Nunca Más (CONADEP)"
+    priority: 1
+    language: es
+    url_pdf: "https://www.cultura.gob.ar/media/uploads/lc_nuncamas_digital1.pdf"
+    url_html_en: "http://www.desaparecidos.org/nuncamas/web/english/library/nevagain/nevagain_001.htm"
+    status: not_verified
+
+  archive_org:
+    name: "Argentina Declassification Project (Archive.org)"
+    priority: 2
+    language: en
+    urls:
+      - "https://archive.org/details/ArgentinaDeclassificationProject"
+      - "https://archive.org/details/Argentina-Declassification-Project-NARA"
+      - "https://archive.org/details/Argentina-Carter-Declassified"
+    status: not_verified
+
+  desclasificados_org:
+    name: "Desclasificados.org.ar (CELS + Abuelas)"
+    priority: 2
+    language: en
+    url: "https://desclasificados.org.ar/"
+    contact: "proyectodesclasificadoseeuu@gmail.com"
+    status: not_verified

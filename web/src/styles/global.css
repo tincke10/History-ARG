@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  .chat-bubble-user {
+    @apply bg-primary-600 text-white rounded-2xl rounded-br-sm px-4 py-3 max-w-[85%] ml-auto;
+  }
+  .chat-bubble-bot {
+    @apply bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[85%] shadow-sm;
+  }
+}
+
+/* Animación del cursor de typing */
+.typing-cursor::after {
+  content: "▋";
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Markdown básico en respuestas */
+.prose-response p { margin-bottom: 0.5rem; }
+.prose-response ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+.prose-response li { margin-bottom: 0.25rem; }
+.prose-response strong { font-weight: 600; }

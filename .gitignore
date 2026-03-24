@@ -1,0 +1,21 @@
+# Datos descargados y procesados (no trackear en git)
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Node (web + worker)
+node_modules/
+dist/
+.wrangler/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
