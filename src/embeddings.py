@@ -133,8 +133,8 @@ def save_d1_sql(
                 "'https://datos.jus.gob.ar/dataset/registro-unificado-de-victimas-del-terrorismo-de-estado-ruvte', "
                 "'CC BY 4.0');\n\n")
 
-        # Chunks en batches de 500 para evitar SQL demasiado largo
-        batch_size = 500
+        # Chunks en batches de 50 (D1 tiene límite de 100KB por statement)
+        batch_size = 50
         for batch_start in range(0, len(chunks), batch_size):
             batch = chunks[batch_start:batch_start + batch_size]
             f.write(f"-- Batch {batch_start // batch_size + 1}\n")

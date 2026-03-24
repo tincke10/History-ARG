@@ -12,7 +12,7 @@ index_name = "argentina-dictadura-docs"
 [[d1_databases]]
 binding = "DB"
 database_name = "history-arg"
-database_id = "" # Completar después de crear la DB con wrangler d1 create
+database_id = "24bb860f-58fc-49dc-8cc8-7bd90f31946c"
 
 [ai]
 binding = "AI"
