@@ -1,80 +1,80 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 ---
 
 <Layout title="Acerca - Archivos Desclasificados">
-  <article class="max-w-3xl mx-auto px-4 py-8 space-y-8">
-    <h1 class="text-2xl font-bold text-gray-900">Acerca de este proyecto</h1>
+  <div class="min-h-screen bg-background flex flex-col">
+    <Header />
 
-    <section>
-      <h2 class="text-lg font-semibold text-gray-800 mb-2">Que es?</h2>
-      <p class="text-gray-600 leading-relaxed">
-        Esta herramienta permite consultar documentos oficiales desclasificados sobre la dictadura
-        civico-militar argentina (1976-1983) usando inteligencia artificial. Las respuestas se basan
-        <strong>exclusivamente</strong> en los documentos indexados, nunca se inventa ni especula informacion.
-      </p>
-    </section>
+    <article class="flex-1 max-w-3xl mx-auto px-4 py-8 space-y-8 relative z-10">
+      <h1 class="text-2xl font-bold text-foreground">Acerca de este proyecto</h1>
 
-    <section>
-      <h2 class="text-lg font-semibold text-gray-800 mb-2">Fuentes de datos</h2>
-      <div class="space-y-4">
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
-          <h3 class="font-medium text-gray-900">Archivos Desclasificados de la SIDE (1973-1983)</h3>
-          <p class="text-sm text-gray-600 mt-1">
-            26 documentos oficiales de la Secretaria de Inteligencia del Estado desclasificados
-            en marzo de 2026. Incluyen resoluciones, memorandos, circulares, directivas y manuales.
-            Total: 987 paginas.
-          </p>
-          <a href="https://www.argentina.gob.ar/inteligencia/archivos" target="_blank"
-             class="text-sm text-primary-600 hover:underline mt-2 inline-block">
-            Ver fuente oficial
-          </a>
+      <section>
+        <h2 class="text-lg font-semibold text-foreground mb-2">Que es?</h2>
+        <p class="text-muted-foreground leading-relaxed">
+          Esta herramienta permite consultar documentos oficiales desclasificados sobre la dictadura
+          civico-militar argentina (1976-1983) usando inteligencia artificial. Las respuestas se basan
+          <strong class="text-foreground">exclusivamente</strong> en los documentos indexados, nunca se inventa ni especula informacion.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold text-foreground mb-2">Fuentes de datos</h2>
+        <div class="space-y-4">
+          <div class="bg-card border border-border/50 rounded-lg p-4">
+            <h3 class="font-medium text-foreground">Archivos Desclasificados de la SIDE (1973-1983)</h3>
+            <p class="text-sm text-muted-foreground mt-1">
+              26 documentos oficiales de la Secretaria de Inteligencia del Estado desclasificados
+              en marzo de 2026. Incluyen resoluciones, memorandos, circulares, directivas y manuales.
+              Total: 987 paginas.
+            </p>
+            <a href="https://www.argentina.gob.ar/inteligencia/archivos" target="_blank"
+               class="text-sm text-[#74ACDF] hover:underline mt-2 inline-block">
+              Ver fuente oficial
+            </a>
+          </div>
+
+          <div class="bg-card border border-border/50 rounded-lg p-4">
+            <h3 class="font-medium text-foreground">RUVTE - Registro Unificado de Victimas</h3>
+            <p class="text-sm text-muted-foreground mt-1">
+              Registro oficial de 9,415 victimas del accionar represivo ilegal del Estado argentino
+              entre 1966 y 1983. Publicado por el Ministerio de Justicia, Secretaria de Derechos Humanos.
+              Licencia: Creative Commons BY 4.0.
+            </p>
+            <a href="https://datos.jus.gob.ar/dataset/registro-unificado-de-victimas-del-terrorismo-de-estado-ruvte"
+               target="_blank" class="text-sm text-[#74ACDF] hover:underline mt-2 inline-block">
+              Ver fuente oficial
+            </a>
+          </div>
         </div>
+      </section>
 
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
-          <h3 class="font-medium text-gray-900">RUVTE - Registro Unificado de Victimas</h3>
-          <p class="text-sm text-gray-600 mt-1">
-            Registro oficial de 9,415 victimas del accionar represivo ilegal del Estado argentino
-            entre 1966 y 1983. Publicado por el Ministerio de Justicia, Secretaria de Derechos Humanos.
-            Licencia: Creative Commons BY 4.0.
-          </p>
-          <a href="https://datos.jus.gob.ar/dataset/registro-unificado-de-victimas-del-terrorismo-de-estado-ruvte"
-             target="_blank" class="text-sm text-primary-600 hover:underline mt-2 inline-block">
-            Ver fuente oficial
-          </a>
-        </div>
+      <section>
+        <h2 class="text-lg font-semibold text-foreground mb-2">Limitaciones</h2>
+        <ul class="text-sm text-muted-foreground space-y-2 list-disc list-inside">
+          <li>Solo puede responder sobre informacion contenida en los documentos indexados.</li>
+          <li>El OCR de los documentos escaneados puede contener errores de transcripcion.</li>
+          <li>Los datos del RUVTE estan actualizados hasta diciembre de 2020.</li>
+          <li>La inteligencia artificial puede cometer errores de interpretacion. Siempre verificar con las fuentes originales.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold text-foreground mb-2">Tecnologia</h2>
+        <p class="text-sm text-muted-foreground">
+          Proyecto open source construido con Cloudflare Workers, Vectorize y Workers AI.
+          El OCR de los documentos SIDE fue realizado por el proyecto comunitario
+          <a href="https://side.com.ar/" target="_blank" class="text-[#74ACDF] hover:underline">side.com.ar</a>.
+        </p>
+      </section>
+
+      <div class="text-center pt-4">
+        <a href="/" class="text-sm text-[#74ACDF] hover:underline">Volver al chat</a>
       </div>
-    </section>
+    </article>
 
-    <section>
-      <h2 class="text-lg font-semibold text-gray-800 mb-2">Limitaciones</h2>
-      <ul class="text-sm text-gray-600 space-y-2 list-disc list-inside">
-        <li>Solo puede responder sobre informacion contenida en los documentos indexados.</li>
-        <li>El OCR de los documentos escaneados puede contener errores de transcripcion.</li>
-        <li>Los datos del RUVTE estan actualizados hasta diciembre de 2020.</li>
-        <li>La inteligencia artificial puede cometer errores de interpretacion. Siempre verificar con las fuentes originales.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2 class="text-lg font-semibold text-gray-800 mb-2">Tecnologia</h2>
-      <p class="text-sm text-gray-600">
-        Proyecto open source construido con Cloudflare Workers, Vectorize y Workers AI.
-        El OCR de los documentos SIDE fue realizado por el proyecto comunitario
-        <a href="https://side.com.ar/" target="_blank" class="text-primary-600 hover:underline">side.com.ar</a>.
-      </p>
-    </section>
-
-    <section>
-      <h2 class="text-lg font-semibold text-gray-800 mb-2">Contribuir</h2>
-      <p class="text-sm text-gray-600">
-        El codigo fuente es libre y abierto. Podes contribuir agregando nuevas fuentes de datos,
-        mejorando la calidad del OCR o la interfaz.
-      </p>
-      <a href="https://github.com/TU_USUARIO/History-ARG" target="_blank"
-         class="inline-flex items-center gap-1 mt-2 text-sm text-primary-600 hover:underline">
-        Ver repositorio en GitHub
-      </a>
-    </section>
-  </article>
+    <Footer />
+  </div>
 </Layout>

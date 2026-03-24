@@ -1,33 +1,81 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Tema memorial argentino - 24 de Marzo */
+:root {
+  --background: #1a1d2e;
+  --foreground: #e8e6e3;
+  --card: #22263a;
+  --card-foreground: #e8e6e3;
+  --popover: #22263a;
+  --popover-foreground: #e8e6e3;
+  --primary: #74ACDF;
+  --primary-foreground: #1a1d2e;
+  --secondary: #2a2f45;
+  --secondary-foreground: #d4d2cf;
+  --muted: #2a2f45;
+  --muted-foreground: #8b8985;
+  --accent: #74ACDF;
+  --accent-foreground: #1a1d2e;
+  --destructive: #c53030;
+  --destructive-foreground: #ffffff;
+  --border: #3a4060;
+  --input: #2a2f45;
+  --ring: #74ACDF;
+  --radius: 0.25rem;
+
+  /* Colores bandera argentina */
+  --celeste: #74ACDF;
+  --sol-mayo: #F6B40E;
+}
+
+@theme inline {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+}
 
 @layer base {
+  * {
+    border-color: var(--border);
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
   }
 }
 
-@layer components {
-  .chat-bubble-user {
-    @apply bg-primary-600 text-white rounded-2xl rounded-br-sm px-4 py-3 max-w-[85%] ml-auto;
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
   }
-  .chat-bubble-bot {
-    @apply bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[85%] shadow-sm;
+  50% {
+    transform: translateY(-25%);
   }
 }
 
-/* Animación del cursor de typing */
-.typing-cursor::after {
-  content: "▋";
-  animation: blink 1s step-end infinite;
+.animate-bounce {
+  animation: bounce 0.6s infinite;
 }
-@keyframes blink {
-  50% { opacity: 0; }
-}
-
-/* Markdown básico en respuestas */
-.prose-response p { margin-bottom: 0.5rem; }
-.prose-response ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
-.prose-response li { margin-bottom: 0.25rem; }
-.prose-response strong { font-weight: 600; }

@@ -2,24 +2,36 @@ import { SYSTEM_PROMPT, buildUserPrompt } from "./prompts.js";
 import { preprocessQuery } from "./preprocessing.js";
 
 const TOP_K = 5;
-const LLM_MODEL = "@cf/meta/llama-3.1-8b-instruct";
 const EMBED_MODEL = "@cf/baai/bge-small-en-v1.5";
+const GROQ_MODEL = "llama-3.1-70b-versatile";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const MAX_CONTEXT_CHARS = 4000;
+const MAX_OUTPUT_TOKENS = 512;
+const CACHE_TTL = 3600;
 
 /**
- * Pipeline RAG completo: query → embed → search → context → generate.
- * Retorna un ReadableStream con la respuesta en streaming.
+ * Pipeline RAG: query → cache check → embed → search → context → Groq → stream
  */
-export async function ragPipeline(env, query, filters) {
-  // 1. Preprocesar query
+export async function ragPipeline(env, query, filters, request) {
+  // 1. Check cache
+  const cacheKey = new Request(
+    `https://cache.internal/chat/${encodeURIComponent(query)}${filters?.source ? `?source=${filters.source}` : ""}`,
+    { method: "GET" }
+  );
+  const cache = caches.default;
+  const cached = await cache.match(cacheKey);
+  if (cached) return cached;
+
+  // 2. Preprocesar query
   const enhancedQuery = preprocessQuery(query);
 
-  // 2. Embed query con Workers AI
+  // 3. Embed query con Workers AI
   const embeddingResponse = await env.AI.run(EMBED_MODEL, {
     text: [enhancedQuery],
   });
   const queryVector = embeddingResponse.data[0];
 
-  // 3. Buscar en Vectorize
+  // 4. Buscar en Vectorize
   const vectorQuery = { topK: TOP_K, returnMetadata: "all" };
   if (filters?.source) {
     vectorQuery.filter = { source: filters.source };
@@ -30,58 +42,105 @@ export async function ragPipeline(env, query, filters) {
     return noResultsResponse();
   }
 
-  // 4. Recuperar texto completo de D1
+  // 5. Recuperar texto completo de D1
   const chunkIds = vectorResults.matches.map((m) => m.id);
   const placeholders = chunkIds.map(() => "?").join(", ");
   const dbResults = await env.DB.prepare(
-    `SELECT id, text, source, doc_id, title, date, type, tags, provincia
+    `SELECT id, text, source, doc_id, title, date, type, classification, tags, historical_period, provincia
      FROM chunks WHERE id IN (${placeholders})`
   )
     .bind(...chunkIds)
     .all();
 
-  // Mapear por ID para mantener el orden de relevancia
   const chunksById = {};
   for (const row of dbResults.results) {
     chunksById[row.id] = row;
   }
 
   const contextChunks = [];
+  let totalChars = 0;
   for (const match of vectorResults.matches) {
     const chunk = chunksById[match.id];
-    if (chunk) {
-      contextChunks.push({
-        text: chunk.text,
-        source: chunk.source,
-        title: chunk.title || "",
-        date: chunk.date || "",
-        doc_id: chunk.doc_id || "",
-        type: chunk.type || "",
-        score: match.score,
-      });
+    if (!chunk) continue;
+    if (totalChars + chunk.text.length > MAX_CONTEXT_CHARS) {
+      const remaining = MAX_CONTEXT_CHARS - totalChars;
+      if (remaining > 200) {
+        contextChunks.push(buildChunkObj(chunk, match.score, remaining));
+      }
+      break;
     }
+    totalChars += chunk.text.length;
+    contextChunks.push(buildChunkObj(chunk, match.score));
   }
 
-  // 5. Generar respuesta con LLM (streaming)
+  // 6. Generar con Groq (streaming)
   const userPrompt = buildUserPrompt(query, contextChunks);
 
-  const stream = await env.AI.run(LLM_MODEL, {
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: userPrompt },
-    ],
-    stream: true,
-    max_tokens: 2048,
-    temperature: 0.1,
+  const groqRes = await fetch(GROQ_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userPrompt },
+      ],
+      stream: true,
+      max_tokens: MAX_OUTPUT_TOKENS,
+      temperature: 0.1,
+    }),
   });
 
-  // 6. Transformar stream de Workers AI a SSE con metadata de fuentes
-  return createSSEResponse(stream, contextChunks);
+  // Fallback a Workers AI si Groq falla
+  if (!groqRes.ok) {
+    console.warn("Groq failed, falling back to Workers AI:", groqRes.status);
+    const fallbackStream = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userPrompt },
+      ],
+      stream: true,
+      max_tokens: MAX_OUTPUT_TOKENS,
+      temperature: 0.1,
+    });
+    return createWorkersAISSEResponse(fallbackStream, contextChunks);
+  }
+
+  // 7. Transform Groq SSE → our SSE format
+  const response = createGroqSSEResponse(groqRes.body, contextChunks);
+
+  // 8. Cache (background)
+  const responseToCache = response.clone();
+  const cacheableResponse = new Response(responseToCache.body, {
+    headers: {
+      ...Object.fromEntries(responseToCache.headers),
+      "Cache-Control": `s-maxage=${CACHE_TTL}`,
+    },
+  });
+  cache.put(cacheKey, cacheableResponse).catch(() => {});
+
+  return response;
 }
 
-/**
- * Retorna las fuentes disponibles desde D1.
- */
+function buildChunkObj(chunk, score, truncateAt) {
+  return {
+    text: truncateAt ? chunk.text.substring(0, truncateAt) + "..." : chunk.text,
+    source: chunk.source,
+    title: chunk.title || "",
+    date: chunk.date || "",
+    doc_id: chunk.doc_id || "",
+    type: chunk.type || "",
+    classification: chunk.classification || "",
+    tags: chunk.tags || "",
+    historical_period: chunk.historical_period || "",
+    provincia: chunk.provincia || "",
+    score,
+  };
+}
+
 export async function getSources(env) {
   const result = await env.DB.prepare(
     "SELECT id, name, description, url, license FROM sources"
@@ -89,40 +148,102 @@ export async function getSources(env) {
   return result.results;
 }
 
+function buildSourcesEvent(contextChunks) {
+  return {
+    type: "sources",
+    data: contextChunks.map((c, i) => ({
+      num: i + 1,
+      source: c.source,
+      title: c.title,
+      date: c.date,
+      doc_id: c.doc_id,
+      type: c.type,
+      classification: c.classification,
+      tags: c.tags,
+      historical_period: c.historical_period,
+      provincia: c.provincia,
+      score: c.score,
+      text_preview: c.text.substring(0, 300),
+    })),
+  };
+}
+
 /**
- * Crea una respuesta SSE que incluye los tokens del LLM y las fuentes al final.
+ * Transforma Groq SSE (formato OpenAI) a nuestro formato SSE.
  */
-function createSSEResponse(aiStream, contextChunks) {
+function createGroqSSEResponse(groqStream, contextChunks) {
   const encoder = new TextEncoder();
 
   const readable = new ReadableStream({
     async start(controller) {
-      // Enviar fuentes como primer evento
-      const sourcesEvent = {
-        type: "sources",
-        data: contextChunks.map((c, i) => ({
-          num: i + 1,
-          source: c.source,
-          title: c.title,
-          date: c.date,
-          doc_id: c.doc_id,
-          score: c.score,
-          text_preview: c.text.substring(0, 200),
-        })),
-      };
       controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify(sourcesEvent)}\n\n`)
+        encoder.encode(`data: ${JSON.stringify(buildSourcesEvent(contextChunks))}\n\n`)
       );
 
-      // Stream de tokens del LLM
-      const reader = aiStream.getReader();
+      const reader = groqStream.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const text = new TextDecoder().decode(value);
-          // Workers AI streaming devuelve líneas "data: {...}"
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const jsonStr = line.slice(6).trim();
+            if (!jsonStr || jsonStr === "[DONE]") continue;
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const delta = parsed.choices?.[0]?.delta?.content;
+              if (delta) {
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ type: "token", data: delta })}\n\n`)
+                );
+              }
+            } catch { /* skip */ }
+          }
+        }
+      } catch (err) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ type: "error", data: err.message })}\n\n`)
+        );
+      }
+
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`));
+      controller.close();
+    },
+  });
+
+  return new Response(readable, {
+    headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" },
+  });
+}
+
+/**
+ * Fallback: Workers AI stream → nuestro formato SSE.
+ */
+function createWorkersAISSEResponse(aiStream, contextChunks) {
+  const encoder = new TextEncoder();
+
+  const readable = new ReadableStream({
+    async start(controller) {
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify(buildSourcesEvent(contextChunks))}\n\n`)
+      );
+
+      const reader = aiStream.getReader();
+      const decoder = new TextDecoder();
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const text = decoder.decode(value, { stream: true });
           const lines = text.split("\n").filter((l) => l.startsWith("data: "));
           for (const line of lines) {
             const jsonStr = line.slice(6);
@@ -131,39 +252,21 @@ function createSSEResponse(aiStream, contextChunks) {
               const parsed = JSON.parse(jsonStr);
               const token = parsed.response || "";
               if (token) {
-                controller.enqueue(
-                  encoder.encode(
-                    `data: ${JSON.stringify({ type: "token", data: token })}\n\n`
-                  )
-                );
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "token", data: token })}\n\n`));
               }
-            } catch {
-              // Skip malformed lines
-            }
+            } catch { /* skip */ }
           }
         }
       } catch (err) {
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ type: "error", data: err.message })}\n\n`
-          )
-        );
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", data: err.message })}\n\n`));
       }
-
-      // Señal de fin
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`)
-      );
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`));
       controller.close();
     },
   });
 
   return new Response(readable, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
+    headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" },
   });
 }
 
@@ -176,9 +279,6 @@ function noResultsResponse() {
   ].join("");
 
   return new Response(body, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-    },
+    headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
   });
 }

@@ -52,7 +52,7 @@ async function handleChat(request, env) {
   }
 
   const filters = source ? { source } : null;
-  const response = await ragPipeline(env, query.trim(), filters);
+  const response = await ragPipeline(env, query.trim(), filters, request);
 
   // Agregar CORS headers a la respuesta SSE
   const headers = new Headers(response.headers);
