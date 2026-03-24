@@ -2,127 +2,129 @@
   <img src="web/public/favicon.svg" width="64" height="64" alt="Logo" />
 </p>
 
-<h1 align="center">Archivos Desclasificados</h1>
-<h3 align="center">Dictadura Civico-Militar Argentina (1976-1983)</h3>
+<h1 align="center">Declassified Archives</h1>
+<h3 align="center">Argentine Civic-Military Dictatorship (1976-1983)</h3>
 
 <p align="center">
-  <strong>Chatbot de acceso abierto para consultar documentos oficiales desclasificados sobre la dictadura argentina usando inteligencia artificial.</strong>
+  <strong>Open-access AI chatbot for querying officially declassified documents about the Argentine dictatorship.</strong>
 </p>
 
 <p align="center">
-  <a href="https://history-arg-web.pages.dev">Ver sitio</a> &middot;
-  <a href="#como-funciona">Como funciona</a> &middot;
-  <a href="#setup-y-deploy">Deploy</a> &middot;
-  <a href="SOURCES.md">Fuentes</a>
+  <a href="https://history-arg-web.pages.dev">Live Site</a> &middot;
+  <a href="#how-it-works">How it Works</a> &middot;
+  <a href="#setup--deploy">Deploy</a> &middot;
+  <a href="SOURCES.md">Sources</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/costo-$0%2Fmes-brightgreen" alt="Costo $0/mes" />
-  <img src="https://img.shields.io/badge/fuentes-10%2C243_documentos-blue" alt="10,243 documentos" />
+  <img src="https://img.shields.io/badge/cost-$0%2Fmo-brightgreen" alt="Cost $0/mo" />
+  <img src="https://img.shields.io/badge/sources-10%2C243_documents-blue" alt="10,243 documents" />
   <img src="https://img.shields.io/badge/tests-11%2F11_pass-success" alt="Tests 11/11" />
-  <img src="https://img.shields.io/badge/licencia-MIT-yellow" alt="MIT" />
+  <img src="https://img.shields.io/badge/license-MIT-yellow" alt="MIT" />
 </p>
 
 ---
 
-## Que es esto?
+## What is this?
 
-Una herramienta gratuita y abierta que permite a cualquier ciudadano argentino consultar informacion de archivos oficiales desclasificados sobre la ultima dictadura civico-militar. Las respuestas se basan **exclusivamente** en documentos indexados: nunca inventa ni especula informacion.
+A free, open-source tool that allows anyone to query officially declassified documents about Argentina's last civic-military dictatorship (1976-1983). Responses are based **exclusively** on indexed documents — the system never fabricates or speculates information.
 
-El sistema utiliza RAG (Retrieval-Augmented Generation) para buscar en los documentos relevantes y generar respuestas con citas a las fuentes originales.
+The chatbot uses RAG (Retrieval-Augmented Generation) to search through relevant documents and generate answers with citations to the original sources.
+
+> **Context:** Between 1976 and 1983, Argentina was ruled by a military dictatorship responsible for the forced disappearance of 30,000 people. In March 2026, the Argentine government declassified 26 official intelligence files from that period. This project makes those documents — along with the official registry of victims — queryable by anyone.
 
 ### Guardrails
 
-El chatbot tiene reglas estrictas:
+The chatbot enforces strict rules:
 
-- Solo responde sobre la dictadura argentina y los archivos indexados
-- Rechaza preguntas fuera de tema (deportes, matematica, etc.)
-- No emite opiniones politicas: ante preguntas de valoracion, responde con hechos documentados
-- Resiste intentos de manipulacion o jailbreak
-- Trata la informacion de victimas con respeto y sensibilidad
+- Only answers about the Argentine dictatorship and indexed archives
+- Rejects off-topic questions (sports, math, other countries, etc.)
+- Does not emit political opinions — responds to value judgments with documented facts
+- Resists prompt injection and jailbreak attempts
+- Treats victim data with respect and sensitivity
 
 ---
 
-## Fuentes de datos
+## Data Sources
 
-| Fuente | Descripcion | Volumen | Licencia |
+| Source | Description | Volume | License |
 |---|---|---|---|
-| **SIDE** | 26 documentos desclasificados de la Secretaria de Inteligencia del Estado. Resoluciones, memorandos, circulares, directivas y manuales (1973-1983). | 987 paginas / 828 chunks | Dominio publico |
-| **RUVTE** | Registro Unificado de Victimas del Terrorismo de Estado. Desapariciones forzadas, asesinatos y casos en investigacion (1966-1983). | 9,415 victimas | CC BY 4.0 |
+| **SIDE** | 26 declassified files from Argentina's Intelligence Secretariat. Resolutions, memos, circulars, directives and manuals (1973-1983). | 987 pages / 828 chunks | Public domain |
+| **RUVTE** | Unified Registry of Victims of State Terrorism. Forced disappearances, murders and cases under investigation (1966-1983). | 9,415 victims | CC BY 4.0 |
 
-**Total: 10,243 documentos indexados.**
+**Total: 10,243 indexed documents.**
 
-Los archivos SIDE provienen del [portal oficial](https://www.argentina.gob.ar/inteligencia/archivos) del gobierno argentino, desclasificados el 19 de marzo de 2026. El OCR fue realizado por el proyecto comunitario [side.com.ar](https://side.com.ar/).
+SIDE files come from the [official government portal](https://www.argentina.gob.ar/inteligencia/archivos), declassified on March 19, 2026. OCR was performed by the community project [side.com.ar](https://side.com.ar/).
 
-Los datos del RUVTE provienen de [datos.jus.gob.ar](https://datos.jus.gob.ar/dataset/registro-unificado-de-victimas-del-terrorismo-de-estado-ruvte), publicados por el Ministerio de Justicia.
+RUVTE data comes from [datos.jus.gob.ar](https://datos.jus.gob.ar/dataset/registro-unificado-de-victimas-del-terrorismo-de-estado-ruvte), published by Argentina's Ministry of Justice.
 
-Ver [SOURCES.md](SOURCES.md) para URLs completas, campos de cada dataset, y estado de accesibilidad.
+See [SOURCES.md](SOURCES.md) for full URLs, dataset fields, and accessibility status.
 
 ---
 
-## Como funciona
+## How it Works
 
 ```
-                            Archivos Desclasificados - Arquitectura RAG
+                          Declassified Archives — RAG Architecture
 
   ┌─────────────┐     ┌──────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-  │  Usuario     │     │  Cloudflare      │     │  Cloudflare      │     │  Groq API       │
+  │  User        │     │  Cloudflare      │     │  Cloudflare      │     │  Groq API       │
   │  (browser)   │────>│  Worker          │────>│  Vectorize       │     │  (Llama 3.1 70B)│
   │              │     │                  │     │  (10,243 vectors)│     │                 │
   │              │     │  1. Embed query  │     └──────────────────┘     │                 │
   │              │     │  2. Search top-5 │                              │                 │
   │              │     │  3. Fetch D1     │     ┌──────────────────┐     │                 │
   │              │<────│  4. LLM stream   │────>│  Cloudflare D1   │     │                 │
-  │              │ SSE │  5. Cache        │     │  (texto+metadata)│     │                 │
+  │              │ SSE │  5. Cache        │     │  (text+metadata) │     │                 │
   └─────────────┘     │                  │────>│                  │────>│                 │
                       └──────────────────┘     └──────────────────┘     └─────────────────┘
                              │                                                   │
                              │  Workers AI (bge-small, 384d)                     │
-                             │  para embedding de queries                        │
+                             │  for query embeddings                             │
                              └───────────────────────────────────────────────────┘
 ```
 
-### Pipeline paso a paso
+### Step-by-step pipeline
 
-1. **El usuario escribe una pregunta** en la interfaz web
-2. **El Worker embede la query** con Workers AI (`bge-small-en-v1.5`, 384 dimensiones)
-3. **Busca los 5 documentos mas relevantes** en Vectorize (cosine similarity)
-4. **Recupera el texto completo** de esos documentos desde D1
-5. **Construye un prompt** con el contexto y las reglas de seguridad
-6. **Genera la respuesta** con Groq (Llama 3.1 70B) en streaming
-7. **El usuario ve la respuesta** token por token con las fuentes citadas
-8. **Se cachea** la respuesta por 1 hora para queries repetidas
+1. **User writes a question** in the web interface
+2. **Worker embeds the query** with Workers AI (`bge-small-en-v1.5`, 384 dimensions)
+3. **Searches the 5 most relevant documents** in Vectorize (cosine similarity)
+4. **Retrieves full text** from D1
+5. **Builds a prompt** with context and safety rules
+6. **Generates the response** with Groq (Llama 3.1 70B) via streaming
+7. **User sees the response** token by token with cited sources
+8. **Response is cached** for 1 hour for repeated queries
 
 ---
 
-## Stack tecnologico
+## Tech Stack
 
-### Produccion (web publica)
+### Production (public web)
 
-| Componente | Tecnologia | Costo |
+| Component | Technology | Cost |
 |---|---|---|
-| Frontend | Astro + Tailwind CSS v4 + React (islands) | Gratis (Cloudflare Pages) |
-| Backend API | Cloudflare Workers | Gratis (free tier) |
-| Embeddings | Workers AI (`bge-small-en-v1.5`, 384d) | Gratis (10K Neurons/dia) |
-| Vector store | Cloudflare Vectorize (10,243 vectores) | Gratis (78.7% del free tier) |
-| Base de datos | Cloudflare D1 (SQLite) | Gratis (16 MB / 500 MB) |
-| LLM | Groq (`llama-3.1-70b-versatile`) | Gratis (14,400 req/dia) |
-| Fallback LLM | Workers AI (`llama-3.1-8b-instruct`) | Gratis |
-| Cache | Cloudflare Cache API (1h TTL) | Gratis |
-| **Total** | | **$0/mes** |
+| Frontend | Astro + Tailwind CSS v4 + React (islands) | Free (Cloudflare Pages) |
+| Backend API | Cloudflare Workers | Free (free tier) |
+| Embeddings | Workers AI (`bge-small-en-v1.5`, 384d) | Free (10K Neurons/day) |
+| Vector store | Cloudflare Vectorize (10,243 vectors) | Free (78.7% of free tier) |
+| Database | Cloudflare D1 (SQLite) | Free (16 MB / 500 MB) |
+| LLM | Groq (`llama-3.1-70b-versatile`) | Free (14,400 req/day) |
+| Fallback LLM | Workers AI (`llama-3.1-8b-instruct`) | Free |
+| Cache | Cloudflare Cache API (1h TTL) | Free |
+| **Total** | | **$0/mo** |
 
-### Desarrollo
+### Development
 
-| Componente | Tecnologia |
+| Component | Technology |
 |---|---|
-| Pipeline de datos | Python + sentence-transformers |
-| Embeddings (batch) | `BAAI/bge-small-en-v1.5` via sentence-transformers |
-| OCR | No necesario (usa OCR comunitario de [side.com.ar](https://github.com/Xyborg/side.com.ar)) |
-| Tests | Suite de 11 queries + cosine similarity local |
+| Data pipeline | Python + sentence-transformers |
+| Batch embeddings | `BAAI/bge-small-en-v1.5` via sentence-transformers |
+| OCR | Not needed (uses community OCR from [side.com.ar](https://github.com/Xyborg/side.com.ar)) |
+| Tests | 11-query suite + local cosine similarity |
 
 ---
 
-## Estructura del proyecto
+## Project Structure
 
 ```
 History-ARG/
@@ -130,68 +132,68 @@ History-ARG/
 ├── web/                           # Frontend (Astro + Tailwind + React)
 │   ├── src/
 │   │   ├── pages/
-│   │   │   ├── index.astro        #   Pagina principal con chat
-│   │   │   └── acerca.astro       #   Info del proyecto y fuentes
+│   │   │   ├── index.astro        #   Main page with chat
+│   │   │   └── acerca.astro       #   About page with sources
 │   │   ├── components/
-│   │   │   ├── ChatInterface.tsx   #   Chat con streaming SSE (isla React)
-│   │   │   ├── Header.astro       #   Header con franja argentina + Sol de Mayo
-│   │   │   ├── MemorialBanner.astro#   Banner 24 de Marzo
-│   │   │   └── Footer.astro       #   Footer memorial con panuelos blancos
-│   │   ├── layouts/Layout.astro   #   Layout base con fuentes Google
-│   │   └── styles/global.css      #   Tema dark memorial argentino
+│   │   │   ├── ChatInterface.tsx   #   Chat with SSE streaming (React island)
+│   │   │   ├── Header.astro       #   Header with Argentine flag stripe + Sol de Mayo
+│   │   │   ├── MemorialBanner.astro#   March 24th memorial banner
+│   │   │   └── Footer.astro       #   Memorial footer with white handkerchiefs
+│   │   ├── layouts/Layout.astro   #   Base layout with Google Fonts
+│   │   └── styles/global.css      #   Dark memorial Argentine theme
 │   └── astro.config.mjs
 │
 ├── worker/                        # Backend API (Cloudflare Worker)
 │   ├── src/
 │   │   ├── index.js               #   Router: /api/chat, /api/sources, /api/health
-│   │   ├── rag.js                 #   Pipeline RAG completo con cache y fallback
-│   │   ├── prompts.js             #   System prompt con guardrails
-│   │   └── preprocessing.js       #   Expansion de acronimos (ESMA, CONADEP, etc.)
+│   │   ├── rag.js                 #   Full RAG pipeline with cache and fallback
+│   │   ├── prompts.js             #   System prompt with guardrails
+│   │   └── preprocessing.js       #   Acronym expansion (ESMA, CONADEP, etc.)
 │   └── wrangler.toml              #   Config: Vectorize + D1 + Workers AI bindings
 │
-├── src/                           # Modulos Python (pipeline de datos)
-│   ├── data_acquisition.py        #   Descarga SIDE OCR (987 JSONs) + RUVTE CSVs
-│   ├── text_processing.py         #   Limpieza, chunking, conversion RUVTE a texto
-│   └── embeddings.py              #   Generacion embeddings + export NDJSON/SQL
+├── src/                           # Python modules (data pipeline)
+│   ├── data_acquisition.py        #   Downloads SIDE OCR (987 JSONs) + RUVTE CSVs
+│   ├── text_processing.py         #   Cleaning, chunking, RUVTE-to-text conversion
+│   └── embeddings.py              #   Embedding generation + NDJSON/SQL export
 │
 ├── notebooks/
-│   └── 01_data_pipeline.ipynb     # Pipeline completo para Google Colab
+│   └── 01_data_pipeline.ipynb     # Full pipeline for Google Colab
 │
 ├── scripts/
-│   ├── setup_cloudflare.sh        # Crear Vectorize index + D1 database
-│   └── upload_to_cloudflare.py    # Subir vectores y datos a Cloudflare
+│   ├── setup_cloudflare.sh        # Create Vectorize index + D1 database
+│   └── upload_to_cloudflare.py    # Upload vectors and data to Cloudflare
 │
 ├── tests/
-│   ├── test_queries.json          # Suite de 14 queries (factuales + adversariales)
-│   └── test_local_rag.py          # Test de retrieval local sin Cloudflare
+│   ├── test_queries.json          # Suite of 14 queries (factual + adversarial)
+│   └── test_local_rag.py          # Local retrieval test without Cloudflare
 │
-├── data_catalog.yaml              # Catalogo machine-readable de fuentes
-├── SOURCES.md                     # Documentacion detallada de fuentes
-├── PLAN.md                        # Plan de implementacion (7 fases)
-└── package.json                   # Scripts raiz (dev, build, deploy)
+├── data_catalog.yaml              # Machine-readable source catalog
+├── SOURCES.md                     # Detailed source documentation
+├── PLAN.md                        # Implementation plan (7 phases)
+└── package.json                   # Root scripts (dev, build, deploy)
 ```
 
 ---
 
-## Setup y deploy
+## Setup & Deploy
 
-### Prerequisitos
+### Prerequisites
 
 - Python 3.9+
 - Node.js 18+
-- Cuenta de [Cloudflare](https://dash.cloudflare.com) (free tier)
-- API key de [Groq](https://console.groq.com) (gratis)
+- [Cloudflare](https://dash.cloudflare.com) account (free tier)
+- [Groq](https://console.groq.com) API key (free)
 
-### 1. Clonar y procesar datos
+### 1. Clone and process data
 
 ```bash
-git clone https://github.com/TU_USUARIO/History-ARG.git
+git clone https://github.com/YOUR_USERNAME/History-ARG.git
 cd History-ARG
 
-# Instalar dependencias Python
+# Install Python dependencies
 pip install langchain sentence-transformers pandas tqdm requests
 
-# Ejecutar pipeline completo (~2 minutos)
+# Run the full pipeline (~2 minutes)
 python3 -c "
 from src.data_acquisition import download_side_ocr, download_side_metadata, download_ruvte
 from src.text_processing import build_side_documents, chunk_side_documents, process_ruvte, save_chunks
@@ -214,7 +216,7 @@ save_d1_sql(all_chunks, 'data/processed/d1_schema.sql')
 "
 ```
 
-### 2. Configurar Cloudflare
+### 2. Configure Cloudflare
 
 ```bash
 npx wrangler login
@@ -222,14 +224,13 @@ chmod +x scripts/setup_cloudflare.sh
 ./scripts/setup_cloudflare.sh
 ```
 
-### 3. Configurar secrets
+### 3. Set secrets
 
 ```bash
-# Guardar la API key de Groq como secret
-echo "tu_groq_api_key" | npx wrangler secret put GROQ_API_KEY --name history-arg-api
+echo "your_groq_api_key" | npx wrangler secret put GROQ_API_KEY --name history-arg-api
 ```
 
-### 4. Subir datos
+### 4. Upload data
 
 ```bash
 python3 scripts/upload_to_cloudflare.py
@@ -245,10 +246,10 @@ cd worker && npm install && npx wrangler deploy
 cd web && npm install && npm run deploy
 ```
 
-### 6. Desarrollo local
+### 6. Local development
 
 ```bash
-# Frontend (desde la raiz)
+# Frontend (from root)
 npm run dev
 
 # Worker
@@ -257,83 +258,83 @@ npm run dev:worker
 
 ---
 
-## Resultados de tests
+## Test Results
 
-El pipeline de retrieval fue testeado con 11 queries factuales y de cross-reference:
+The retrieval pipeline was tested with 11 factual and cross-reference queries:
 
 ```
-RESUMEN DE TESTS
+TEST SUMMARY
 ════════════════════════════════════════════════════
   Total queries:     11
   Source hit rate:    11/11 (100%)
   Keyword hit rate:  11/11 (100%)
   Avg top-1 score:   0.775
 
-  [PASS] side_01:  Como estaba organizada la SIDE?           → SIDE  @ 0.741
-  [PASS] side_02:  Que tipo de documentos desclasifico?       → SIDE  @ 0.767
-  [PASS] side_03:  Delegaciones regionales de la SIDE?        → SIDE  @ 0.803
-  [PASS] side_04:  Que era la Comision Asesora?               → SIDE  @ 0.825
-  [PASS] side_05:  Normas de encubrimiento del personal?      → SIDE  @ 0.779
-  [PASS] ruvte_01: Victimas en Buenos Aires?                  → RUVTE @ 0.815
-  [PASS] ruvte_02: Victimas embarazadas?                      → RUVTE @ 0.829
-  [PASS] ruvte_03: Desaparecidos en Cordoba?                  → RUVTE @ 0.711
-  [PASS] ruvte_04: Victimas menores de 18 anos?               → RUVTE @ 0.809
-  [PASS] ruvte_05: Tipos de hechos del RUVTE?                 → SIDE  @ 0.689
-  [PASS] cross_01: SIDE tenia operaciones en provincias?      → SIDE  @ 0.759
+  [PASS] side_01:  How was SIDE organized?                    → SIDE  @ 0.741
+  [PASS] side_02:  What types of documents were declassified?  → SIDE  @ 0.767
+  [PASS] side_03:  SIDE regional offices?                      → SIDE  @ 0.803
+  [PASS] side_04:  What was the Advisory Commission?           → SIDE  @ 0.825
+  [PASS] side_05:  Staff cover-up regulations?                 → SIDE  @ 0.779
+  [PASS] ruvte_01: Victims in Buenos Aires?                    → RUVTE @ 0.815
+  [PASS] ruvte_02: Pregnant victims?                           → RUVTE @ 0.829
+  [PASS] ruvte_03: Disappeared in Cordoba?                     → RUVTE @ 0.711
+  [PASS] ruvte_04: Victims under 18?                           → RUVTE @ 0.809
+  [PASS] ruvte_05: Types of events in RUVTE?                   → SIDE  @ 0.689
+  [PASS] cross_01: Did SIDE operate in provinces?              → SIDE  @ 0.759
 ```
 
-Tests adversariales verificados manualmente:
-- **Off-topic** (mundial, matematica): rechaza y explica su funcion
-- **Jailbreak** (ignorar instrucciones): rechaza sin ejecutar
-- **Opiniones politicas** (militares hicieron bien?): responde con hechos documentados, sin juicio
-- **Suplantacion** (sos ChatGPT?): no se deja engañar
+Adversarial tests verified manually:
+- **Off-topic** (World Cup, math): rejects and explains its scope
+- **Jailbreak** (ignore instructions): rejects without executing
+- **Political opinions** (did the military do the right thing?): responds with documented facts, no judgment
+- **Impersonation** (are you ChatGPT?): does not play along
 
 ---
 
-## Rendimiento
+## Performance
 
-| Metrica | Valor |
+| Metric | Value |
 |---|---|
-| Tiempo de respuesta (completa) | ~5 segundos |
-| Tokens por respuesta | ~250-300 |
-| Velocidad de generacion | ~500 tokens/seg (Groq) |
-| Cache hit | Respuesta instantanea |
-| Cold start | < 1 segundo (Workers) |
-| Tamaño del bundle frontend | ~74 KB gzip |
+| Full response time | ~5 seconds |
+| Tokens per response | ~250-300 |
+| Generation speed | ~500 tokens/sec (Groq) |
+| Cache hit | Instant response |
+| Cold start | < 1 second (Workers) |
+| Frontend bundle size | ~74 KB gzip |
 
 ---
 
-## Fuentes futuras (roadmap)
+## Roadmap
 
-Fuentes identificadas para incorporar en futuras versiones:
+Sources identified for future versions:
 
-| Fuente | Contenido | Idioma | Prioridad |
+| Source | Content | Language | Priority |
 |---|---|---|---|
-| Informe Nunca Mas (CONADEP) | Informe oficial sobre desapariciones | ES | Alta |
-| Archive.org Declassification Project | ~47,000 paginas CIA, FBI, State Dept | EN | Media |
-| Desclasificados.org.ar | 4,903 documentos EEUU (CELS + Abuelas) | EN | Media |
-| CELS Archive | Archivo institucional de DDHH | ES | Media |
-| NSA George Washington University | 2,429 documentos del Southern Cone Project | EN | Baja |
-| Memoria Abierta | 300+ entrevistas audiovisuales | ES | Baja |
+| Nunca Mas Report (CONADEP) | Official report on disappearances | ES | High |
+| Archive.org Declassification Project | ~47,000 pages from CIA, FBI, State Dept | EN | Medium |
+| Desclasificados.org.ar | 4,903 US documents (CELS + Abuelas de Plaza de Mayo) | EN | Medium |
+| CELS Archive | Institutional human rights archive | ES | Medium |
+| NSA at George Washington University | 2,429 Southern Cone Project documents | EN | Low |
+| Memoria Abierta | 300+ audiovisual interviews | ES | Low |
 
 ---
 
-## Creditos
+## Credits
 
-- **OCR de documentos SIDE**: [side.com.ar](https://side.com.ar/) por [Martin Aberastegue](https://github.com/Xyborg/side.com.ar)
-- **RUVTE**: Ministerio de Justicia, Secretaria de Derechos Humanos de la Nacion Argentina
-- **Documentos originales**: Secretaria de Inteligencia del Estado, Republica Argentina
-- **Infraestructura**: [Cloudflare](https://cloudflare.com) (Workers, Pages, Vectorize, D1, Workers AI)
-- **LLM**: [Groq](https://groq.com) (Llama 3.1 70B)
+- **SIDE documents OCR**: [side.com.ar](https://side.com.ar/) by [Martin Aberastegue](https://github.com/Xyborg/side.com.ar)
+- **RUVTE**: Ministry of Justice, Secretariat of Human Rights, Argentine Republic
+- **Original documents**: Secretariat of State Intelligence (SIDE), Argentine Republic
+- **Infrastructure**: [Cloudflare](https://cloudflare.com) (Workers, Pages, Vectorize, D1, Workers AI)
+- **LLM inference**: [Groq](https://groq.com) (Llama 3.1 70B)
 
 ---
 
-## Licencia
+## License
 
 MIT
 
 ---
 
 <p align="center">
-  <em>30.000 Desaparecidos &middot; Nunca Mas &middot; Memoria, Verdad y Justicia</em>
+  <em>30,000 Disappeared &middot; Never Again &middot; Memory, Truth and Justice</em>
 </p>
